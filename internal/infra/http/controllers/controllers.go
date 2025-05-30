@@ -15,8 +15,9 @@ type CtxKey struct {
 }
 
 var (
-	UserKey = CtxKey{Name: "user"}
-	SessKey = CtxKey{Name: "sess"}
+	UserKey  = CtxKey{Name: "user"}
+	SessKey  = CtxKey{Name: "sess"}
+	PlantKey = CtxKey{Name: "plant"}
 )
 
 func Ok(w http.ResponseWriter) {

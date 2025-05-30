@@ -1,6 +1,9 @@
 package container
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/BohdanBoriak/boilerplate-go-back/config"
 	"github.com/BohdanBoriak/boilerplate-go-back/internal/app"
 	"github.com/BohdanBoriak/boilerplate-go-back/internal/infra/database"
@@ -9,8 +12,6 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/upper/db/v4"
 	"github.com/upper/db/v4/adapter/postgresql"
-	"log"
-	"net/http"
 )
 
 type Container struct {
@@ -26,11 +27,13 @@ type Middlewares struct {
 type Services struct {
 	app.AuthService
 	app.UserService
+	app.PlantService
 }
 
 type Controllers struct {
-	AuthController controllers.AuthController
-	UserController controllers.UserController
+	AuthController  controllers.AuthController
+	UserController  controllers.UserController
+	PlantController controllers.PlantController
 }
 
 func New(conf config.Configuration) Container {
@@ -39,12 +42,15 @@ func New(conf config.Configuration) Container {
 
 	sessionRepository := database.NewSessRepository(sess)
 	userRepository := database.NewUserRepository(sess)
+	plantRepository := database.NewPlantRepository(sess)
 
 	userService := app.NewUserService(userRepository)
 	authService := app.NewAuthService(sessionRepository, userRepository, tknAuth, conf.JwtTTL)
+	plantService := app.NewPlantService(plantRepository)
 
 	authController := controllers.NewAuthController(authService, userService)
 	userController := controllers.NewUserController(userService, authService)
+	plantController := controllers.NewPlantController(plantService)
 
 	authMiddleware := middlewares.AuthMiddleware(tknAuth, authService, userService)
 
@@ -55,10 +61,12 @@ func New(conf config.Configuration) Container {
 		Services: Services{
 			authService,
 			userService,
+			plantService,
 		},
 		Controllers: Controllers{
 			authController,
 			userController,
+			plantController,
 		},
 	}
 }
